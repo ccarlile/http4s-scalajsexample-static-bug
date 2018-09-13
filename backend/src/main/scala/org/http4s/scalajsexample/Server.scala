@@ -16,6 +16,7 @@ object Server extends StreamApp[IO] {
       exitCode <- BlazeBuilder[IO]
         .bindHttp(port, ip)
         .mountService(JSApplication.service)
+        .mountService(JSApplication.staticService, "/static")
         .serve
     } yield exitCode
 

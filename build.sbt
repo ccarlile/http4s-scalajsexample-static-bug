@@ -62,7 +62,8 @@ lazy val backend = (project in file("backend"))
     // This settings makes reStart to rebuild if a scala.js file changes on the client
     watchSources ++= (watchSources in frontend).value,
     // Support stopping the running server
-    mainClass in reStart := Some("org.http4s.scalajsexample.Server")
+    mainClass in reStart := Some("org.http4s.scalajsexample.Server"),
+    mainClass in assembly := Some("org.http4s.scalajsexample.Server")
   )
   .dependsOn(sharedJvm)
 

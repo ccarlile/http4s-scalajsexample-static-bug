@@ -34,7 +34,8 @@ object JSApplication {
         "Http4s Scala-js Example App"
       ),
       a(href:="/button", h4("Button Example")),
-      a(href:="/ajax", h4("Ajax Example"))
+      a(href:="/ajax", h4("Ajax Example")),
+      img(src:="/static/lilbub.png")
     )
   }
 
@@ -108,7 +109,6 @@ object JSApplication {
     List(".html", ".js", ".map", ".css", ".png", ".ico")
 
   def service[F[_]](implicit F: Effect[F]) = {
-    def getResource(pathInfo: String) = F.delay(getClass.getResource(pathInfo))
 
     object dsl extends Http4sDsl[F]
     import dsl._
@@ -138,9 +138,18 @@ object JSApplication {
 
       case GET -> Root / "json" / name =>
         Ok(MyData(name).asJson)
+    }
+  }
 
-      case req if supportedStaticExtensions.exists(req.pathInfo.endsWith) =>
-        StaticFile.fromResource[F](req.pathInfo, req.some)
+  def staticService[F[_]](implicit F: Effect[F]) = {
+    def getResource(pathInfo: String) = F.delay(getClass.getResource(pathInfo))
+    object dsl extends Http4sDsl[F]
+    import dsl._
+    val basePath = "/static"
+    HttpService[F] {
+      case req =>
+
+        StaticFile.fromResource[F](s"${basePath}/${req.pathInfo}", req.some)
           .orElse(OptionT.liftF(getResource(req.pathInfo)).flatMap(StaticFile.fromURL[F](_, req.some)))
           .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
           .fold(NotFound())(_.pure[F])

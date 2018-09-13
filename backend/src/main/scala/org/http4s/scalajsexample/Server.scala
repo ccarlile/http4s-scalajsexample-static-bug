@@ -1,6 +1,7 @@
 package org.http4s.scalajsexample
 
 import scala.util.Properties.envOrNone
+import cats.implicits._
 import cats.effect._
 import fs2._
 import org.http4s.server.blaze.BlazeBuilder
@@ -15,8 +16,7 @@ object Server extends StreamApp[IO] {
       port <- Stream.eval(IO(envOrNone("HTTP_PORT").map(_.toInt).getOrElse(8080)))
       exitCode <- BlazeBuilder[IO]
         .bindHttp(port, ip)
-        .mountService(JSApplication.service)
-        .mountService(JSApplication.staticService, "/static")
+        .mountService(JSApplication.service[IO] <+> JSApplication.staticService[IO])
         .serve
     } yield exitCode
 

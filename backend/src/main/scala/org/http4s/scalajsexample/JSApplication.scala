@@ -145,11 +145,11 @@ object JSApplication {
     def getResource(pathInfo: String) = F.delay(getClass.getResource(pathInfo))
     object dsl extends Http4sDsl[F]
     import dsl._
-    val basePath = "/static"
+    // val basePath = "/static"
     HttpService[F] {
       case req =>
 
-        StaticFile.fromResource[F](s"${basePath}/${req.pathInfo}", req.some)
+        StaticFile.fromResource[F](s"${req.pathInfo}", req.some)
           .orElse(OptionT.liftF(getResource(req.pathInfo)).flatMap(StaticFile.fromURL[F](_, req.some)))
           .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
           .fold(NotFound())(_.pure[F])
